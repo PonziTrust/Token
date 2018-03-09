@@ -135,9 +135,10 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   modifier checkAccess() {
-    require(m_firstEntranceToSaleStateUNIX == 0 //if contract not to enter to Sale state yet, owner has access
-            || now.sub(m_firstEntranceToSaleStateUNIX) <= DURATION_TO_ACCESS_FOR_OWNER // if duration To Access For Owner not passed, owner has access
-            || m_state != State.PublicUse); // if contract not in  PublicUse, owner has access
+    require(m_firstEntranceToSaleStateUNIX == 0 // solium-disable-line indentation, operator-whitespace
+      || now.sub(m_firstEntranceToSaleStateUNIX) <= DURATION_TO_ACCESS_FOR_OWNER 
+      || m_state != State.PublicUse
+    ); 
     _;
     // owner has not access if duration To Access For Owner was passed 
     // and (&&) contract in PublicUse state.

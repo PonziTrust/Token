@@ -1,4 +1,6 @@
 # PONZI Token Contracts
+[![Coverage Status](https://coveralls.io/repos/github/PonziTrust/Token/badge.svg?branch=master)](https://coveralls.io/github/PonziTrust/Token?branch=master)
+[![Build Status](https://travis-ci.org/PonziTrust/Token.svg?branch=master)](https://travis-ci.org/PonziTrust/Token)
 
 The PONZI token was implement [EIP20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md) and [ERC667](https://github.com/ethereum/EIPs/issues/677) token standard with additional functionality - sells tokens.
 
