@@ -482,6 +482,13 @@ contract('PonziToken', () => {
       let postDecrease = await token.allowance(owner, recipient);
       assert.equal(150, postDecrease.toString());
     });
+
+    it('when allowance lowest then decrease set 0', async function () {
+      await token.increaseApproval(recipient, 200, { from: owner });
+      await token.decreaseApproval(recipient, 300, { from: owner });
+      let postDecrease = await token.allowance(owner, recipient);
+      assert.equal(0, postDecrease.toString());
+    });
   });
 
   describe('transferFrom(address,address,uint256)', () => {
@@ -516,7 +523,7 @@ contract('PonziToken', () => {
     });
   });
 
-  describe('#transferAndCall(address, uint, bytes)', () => {
+  describe('transferAndCall(address, uint, bytes)', () => {
     let token677Receiver;
     let amount = 100;
     let data;
@@ -564,7 +571,7 @@ contract('PonziToken', () => {
     });
   });
 
-  describe('#transferAllAndCall(address, uint, bytes)', () => {
+  describe('transferAllAndCall(address, uint, bytes)', () => {
     let token677Receiver;
     let data;
     beforeEach(async () => {
@@ -775,20 +782,7 @@ contract('PonziToken', () => {
         );
       });
 
-      it('throw out of gas when send 0.5eth to contact with default 2300 gas', async () => {
-        // set state to Sale
-        await token.setState(State.Sale.str, { from: owner });
-
-        await expectThrow(
-          toPromise(web3.eth.sendTransaction)({
-            from: sender,
-            to: token.address,
-            value: value,
-          }),
-        );
-      });
-
-      it('successful send 0.5eth to contact and recive tokens, with increased gas 500000', async () => {
+      it('successful send 0.5eth to contact and recive tokens', async () => {
         // set state to Sale
         await token.setState(State.Sale.str, { from: owner });
         // get balance before token

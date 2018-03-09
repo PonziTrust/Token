@@ -1,4 +1,4 @@
-pragma solidity 0.4.18;
+pragma solidity 0.4.19;
 
 
 // see: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md

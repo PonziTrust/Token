@@ -16,11 +16,16 @@ const ropstenProvider = process.env.SOLIDITY_COVERAGE
   ? undefined
   : infuraProvider('ropsten');
 
+const defaultGasPrice = process.env.SOLIDITY_COVERAGE
+  ? 0x01
+  : 100000000000;
+
 module.exports = {
+  gasPrice: defaultGasPrice,
   networks: {
     development: {
       host: 'localhost',
-      port: 8545,
+      gas: 0xfffffffffff,
       network_id: '*', // eslint-disable-line camelcase
     },
     ropsten: {
@@ -29,19 +34,17 @@ module.exports = {
     },
     coverage: {
       host: 'localhost',
-      network_id: '*', // eslint-disable-line camelcase
       port: 8555,
+      network_id: '*', // eslint-disable-line camelcase
       gas: 0xfffffffffff,
       gasPrice: 0x01,
     },
     testrpc: {
       host: 'localhost',
-      port: 8545,
       network_id: '*', // eslint-disable-line camelcase
     },
     ganache: {
       host: 'localhost',
-      port: 7545,
       network_id: '*', // eslint-disable-line camelcase
     },
   },

@@ -31,6 +31,9 @@ npm-debug.log
 
 # truffle build directory
 build/
+.node-xml*
 
-# lol macs
-.DS_Store/
+# loc macs
+.DS_Store
+
+
