@@ -123,7 +123,7 @@ contract PonziToken is ERC20, ERC677Token {
 // CONSTRUCTOR
 //  
   /**
-  * @dev constructor PonziToken.
+  * @dev Constructor PonziToken.
   */
   function PonziToken() public {
     m_owner = msg.sender;
@@ -138,7 +138,7 @@ contract PonziToken is ERC20, ERC677Token {
   * do not forget about:
   * https://medium.com/codetractio/a-look-into-paritys-multisig-wallet-bug-affecting-100-million-in-ether-and-tokens-356f5ba6e90a
   * 
-  * @dev initialize the contract, only owner can call and only once.
+  * @dev Initialize the contract, only owner can call and only once.
   * @return Whether successful or not.
   */
   function initContract() 
@@ -174,25 +174,25 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   /**
-  * @dev the name of the token.
-  * @return the name of the token.
+  * @dev The name of the token.
+  * @return The name of the token.
   */
   function name() public view returns (string) {
     return m_name;
   }
 
   /**
-  * @dev the symbol of the token.
-  * @return the symbol of the token.
+  * @dev The symbol of the token.
+  * @return The symbol of the token.
   */
   function symbol() public view returns (string) {
     return m_symbol;
   }
 
   /**
-  * @dev the number of decimals the token.
-  * @return the number of decimals the token.
-  * @notice uses - e.g. 8, means to divide the token.
+  * @dev The number of decimals the token.
+  * @return The number of decimals the token.
+  * @notice Uses - e.g. 8, means to divide the token.
   * amount by 100000000 to get its user representation.
   */
   function decimals() public view returns (uint8) {
@@ -200,15 +200,15 @@ contract PonziToken is ERC20, ERC677Token {
   }
 
   /**
-  * @dev total number of tokens in existence.
-  * @return total number of tokens in existence.
+  * @dev Total number of tokens in existence.
+  * @return Total number of tokens in existence.
   */
   function totalSupply() public view returns (uint256) {
     return m_totalSupply;
   }
 
   /**
-  * @dev transfer token for a specified address.
+  * @dev Transfer token for a specified address.
   * @param to The address to transfer to.
   * @param value The amount to be transferred.
   * @return Whether successful or not.
@@ -229,9 +229,9 @@ contract PonziToken is ERC20, ERC677Token {
 
   /**
    * @dev Transfer tokens from one address to another.
-   * @param from address The address which you want to send tokens from.
-   * @param to address The address which you want to transfer to.
-   * @param value uint256 the amount of tokens to be transferred.
+   * @param from Address The address which you want to send tokens from.
+   * @param to Address The address which you want to transfer to.
+   * @param value Uint256 the amount of tokens to be transferred.
    * @return Whether successful or not.
    */
   function transferFrom(address from, address to, uint256 value) 
@@ -275,8 +275,8 @@ contract PonziToken is ERC20, ERC677Token {
 
   /**
    * @dev Function to check the amount of tokens that an owner allowed to a spender.
-   * @param owner address The address which owns the funds.
-   * @param spender address The address which will spend the funds.
+   * @param owner Address The address which owns the funds.
+   * @param spender Address The address which will spend the funds.
    * @return A uint256 specifying the amount of tokens still available for the spender.
    */
   function allowance(address owner, address spender) 
@@ -310,7 +310,7 @@ contract PonziToken is ERC20, ERC677Token {
   }
 
    /**
-   * approve should be called when allowed[spender] == 0. To decrement
+   * Approve should be called when allowed[spender] == 0. To decrement
    * allowed value is better to use this function to avoid 2 calls (and wait until
    * the first transaction is mined)
    * From MonolithDAO Token.sol.
@@ -340,7 +340,7 @@ contract PonziToken is ERC20, ERC677Token {
 // ERC677 Methods
 //
   /**
-  * @dev transfer token to a contract address with additional data if the recipient is a contact.
+  * @dev Transfer token to a contract address with additional data if the recipient is a contact.
   * @param to The address to transfer to.
   * @param value The amount to be transferred.
   * @param extraData The extra data to be passed to the receiving contract.
@@ -379,10 +379,10 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   /**
-  * @dev call ERC677 tokenFallback for ERC677Recipient contract.
+  * @dev Call ERC677 tokenFallback for ERC677Recipient contract.
   * @param to The address of ERC677Recipient.
   * @param value Amount of tokens with was sended
-  * @param data sended to ERC677Recipient.
+  * @param data Sended to ERC677Recipient.
   * @return Whether contract or not.
   */
   function contractFallback(address to, uint value, bytes data)
@@ -393,7 +393,7 @@ contract PonziToken is ERC20, ERC677Token {
   }
 
   /**
-  * @dev check addr if is contract.
+  * @dev Check addr if is contract.
   * @param addr The address that checking.
   * @return Whether contract or not.
   */
@@ -411,7 +411,7 @@ contract PonziToken is ERC20, ERC677Token {
 // see: https://consensys.github.io/smart-contract-best-practices/known_attacks/
 //
   /**
-  * recived ETH converted to tokens amount for price. sender has max limit for tokens 
+  * Recived ETH converted to tokens amount for price. sender has max limit for tokens 
   * amount as m_maxTokensPerAddress - balanceOf(sender). if amount <= max limit
   * then transfer amount from this to sender and 95%ETH to bank, 5%ETH to owner.
   * else amount > max limit then we calc cost of max limit of tokens,
@@ -419,7 +419,7 @@ contract PonziToken is ERC20, ERC677Token {
   * transfer max limit of tokens from this to sender and 95% max limit cost to bank
   * 5% max limit cost to owner.
   *
-  * @dev contract receive ETH (payable) from sender and transfer some amount of tokens to him.
+  * @dev Contract receive ETH (payable) from sender and transfer some amount of tokens to him.
   */
   function byTokens() public payable atState(State.Sale) {
     // check if msg.sender can to by tokens 
@@ -473,7 +473,7 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   /**
-  * @dev sender receive his pending withdrawals(if > 0).
+  * @dev Sender receive his pending withdrawals(if > 0).
   */
   function withdraw() external {
     uint amount = m_pendingWithdrawals[msg.sender];
@@ -491,7 +491,7 @@ contract PonziToken is ERC20, ERC677Token {
   * @notice http://solidity.readthedocs.io/en/develop/contracts.html#fallback-function
   * we dont need recieve ETH always, only in State.Sale from externally accounts.
   *
-  * @dev fallback func, call byTokens().
+  * @dev Fallback func, call byTokens().
   */
   function() public payable atState(State.Sale) {
     byTokens();
@@ -512,8 +512,8 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   /**
-  * @dev contract work state.
-  * @return contract work state via string.
+  * @dev Get contract work state.
+  * @return Contract work state via string.
   */
   function state() external view returns (string stateString) {
     if (m_state == State.PreSale) {
@@ -526,24 +526,24 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   /**
-  * @dev price of one token in wei.
-  * @return price of one token in wei.
+  * @dev Get price of one token in wei.
+  * @return Price of one token in wei.
   */
   function tokenPriceInWei() public view returns (uint256) {
     return calcTokenPriceInWei();
   }
   
   /**
-  * @dev address of the bank.
-  * @return address of the bank. 
+  * @dev Get address of the bank.
+  * @return Address of the bank. 
   */
   function bank() external view returns(address) {
     return m_bank;
   }
   
   /**
-  * @dev timestamp of first entrance to sale state.
-  * @return timestamp of first entrance to sale state.
+  * @dev Get timestamp of first entrance to sale state.
+  * @return Timestamp of first entrance to sale state.
   */
   function firstEntranceToSaleStateUNIX() 
     external
@@ -554,8 +554,8 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   /**
-  * @dev address of the price setter.
-  * @return address of the price setter.
+  * @dev Get address of the price setter.
+  * @return Address of the price setter.
   */
   function priceSetter() external view returns (address) {
     return m_priceSetter;
@@ -566,15 +566,15 @@ contract PonziToken is ERC20, ERC677Token {
 // only for owner
 //
   /**
-  * @dev owner do disown.
+  * @dev Owner do disown.
   */ 
   function disown() external atState(State.PublicUse) onlyOwner() {
     delete m_owner;
   }
   
   /**
-  * @dev set state of contract working.
-  * @param newState string representation of new state.
+  * @dev Set state of contract working.
+  * @param newState String representation of new state.
   */ 
   function setState(string newState) 
     external 
@@ -598,11 +598,11 @@ contract PonziToken is ERC20, ERC677Token {
   }
 
   /**
-  * if token price not fix then actual price 
+  * If token price not fix then actual price 
   * always will be tokenPriceInWeiForDay(day).
   *
-  * @dev set price of one token in wei and fix it.
-  * @param newTokenPriceInWei price of one token in wei.
+  * @dev Set price of one token in wei and fix it.
+  * @param newTokenPriceInWei Price of one token in wei.
   */ 
   function setAndFixTokenPriceInWei(uint256 newTokenPriceInWei) 
     external
@@ -615,9 +615,9 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   /**
-  * if token price is unfixed then actual will be tokenPriceInWeiForDay(day).
+  * If token price is unfixed then actual will be tokenPriceInWeiForDay(day).
   * 
-  * @dev unfix token price.
+  * @dev Set unfix token price to true.
   */
   function unfixTokenPriceInWei() 
     external
@@ -629,7 +629,7 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   /**
-  * @dev set the PriceSetter address, which has access to set one token price in wei.
+  * @dev Set the PriceSetter address, which has access to set one token price in wei.
   * @param newPriceSetter The address of new PriceSetter.
   */
   function setPriceSetter(address newPriceSetter) 
@@ -641,7 +641,7 @@ contract PonziToken is ERC20, ERC677Token {
   }
 
   /**
-  * @dev set the bank, which receive 95%ETH from tokens sale.
+  * @dev Set the bank, which receive 95%ETH from tokens sale.
   * @param newBank The address of new bank.
   */
   function setBank(address newBank) 
@@ -658,10 +658,10 @@ contract PonziToken is ERC20, ERC677Token {
 // internal pure methods
 //
   /**
-  * @dev conver token to wei.
-  * @param tokensAmount .
-  * @param tokenPrice one token price in wei.
-  * @return weiAmount . 
+  * @dev Convert token to wei.
+  * @param tokensAmount Amout of tokens.
+  * @param tokenPrice One token price in wei.
+  * @return weiAmount Result amount of convertation. 
   */
   function tokensToWei(uint256 tokensAmount, uint256 tokenPrice) 
     internal
@@ -672,10 +672,10 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   /**
-  * @dev conver wei to token.
-  * @param weiAmount .
-  * @param tokenPrice one token price in wei.
-  * @return tokensAmount . 
+  * @dev Conver wei to token.
+  * @param weiAmount Wei amout.
+  * @param tokenPrice One token price in wei.
+  * @return tokensAmount Result amount of convertation.
   */
   function weiToTokens(uint256 weiAmount, uint256 tokenPrice) 
     internal 
@@ -689,8 +689,8 @@ contract PonziToken is ERC20, ERC677Token {
 // private view methods
 //
   /**
-  * @dev get actual token price.
-  * @return price . 
+  * @dev Get actual token price.
+  * @return price One token price in wei. 
   */
   function calcTokenPriceInWei() 
     private 
@@ -715,9 +715,9 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   /**
-  * @dev get token price for day after starting sale tokens.
-  * @param day .
-  * @return price . 
+  * @dev Get token price for specific day after starting sale tokens.
+  * @param day Secific day.
+  * @return price One token price in wei for specific day. 
   */
   function tokenPriceInWeiForDay(uint256 day) 
     private 
@@ -750,9 +750,9 @@ contract PonziToken is ERC20, ERC677Token {
   }
   
   /**
-  * @notice it is always must be true, for correct withdrawals and receivers ETH.
+  * @notice It is always must be true, for correct withdrawals and receivers ETH.
   *
-  * check if this.balance >= m_myDebtInWei.
+  * Check if this.balance >= m_myDebtInWei.
   */
   function checkValidityOfBalance() private view {
     // assertion is not a strict equality of the balance because the contract 

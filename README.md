@@ -2,7 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/PonziTrust/Token/badge.svg?branch=master)](https://coveralls.io/github/PonziTrust/Token?branch=master)
 [![Build Status](https://travis-ci.org/PonziTrust/Token.svg?branch=master)](https://travis-ci.org/PonziTrust/Token)
 
-The PONZI token was implement [EIP20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md) and [ERC667](https://github.com/ethereum/EIPs/issues/677) token standards with additional functionality - sells tokens.
+The PONZI token implement [EIP20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md) and [ERC667](https://github.com/ethereum/EIPs/issues/677) token standards with additional functionality - sells tokens.
 
 The total supply of the token is 100,000,000, and each token is divisibe up to 8 decimal places.
 
@@ -35,11 +35,6 @@ The contract implements [Withdrawal](http://solidity.readthedocs.io/en/develop/c
 ## Installation
 ```
 npm install
-```
-
-## compilation
-```
-npm run compile
 ```
 
 ## Testing

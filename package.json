@@ -1,7 +1,7 @@
 {
   "name": "ponzi-trust-token",
   "version": "1.0.0",
-  "description": "Ponzi Trust token smart contract",
+  "description": "Ponzi Trust token smart contracts",
   "scripts": {
     "compile": "node_modules/.bin/truffle compile",
     "test": "node_modules/.bin/truffle test --network develop",
