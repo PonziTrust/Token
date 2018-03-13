@@ -18,7 +18,7 @@ const PonziToken = artifacts.require('./contracts/PonziToken.sol');
 const Token677ReceiverMock = artifacts.require('../contracts/mocks/Token677ReceiverMock.sol');
 const NotERC677Compatible = artifacts.require('../contracts/mocks/NotERC677Compatible.sol');
 
-let Accounts, owner, recipient, token, sender, bank;
+let Accounts, owner, recipient, token, sender, bank, token677Receiver, nonERC677;
 
 const State = Object.freeze({
   'PreSale': { num: 0, str: 'PreSale' },
@@ -27,16 +27,16 @@ const State = Object.freeze({
 });
 
 contract('PonziToken', () => {
-  beforeEach(async function () {
+  before(async function () {
     Accounts = await getAccounts();
+    owner = Accounts[0];
+    recipient = Accounts[1];
+    sender = Accounts[2];
+    bank = Accounts[3];
   });
 
   describe('check initialization', () => {
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
-      sender = Accounts[2];
-      bank = Accounts[3];
       token = await PonziToken.new({ from: owner });
     });
 
@@ -102,14 +102,6 @@ contract('PonziToken', () => {
     });
 
     context('initContract()', () => {
-      beforeEach(async () => {
-        owner = Accounts[0];
-        recipient = Accounts[1];
-        sender = Accounts[2];
-        bank = Accounts[3];
-        token = await PonziToken.new({ from: owner });
-      });
-
       it('throw on not owner`s calling ', async () => {
         await assertRevert(token.initContract({ from: sender }));
       });
@@ -121,11 +113,6 @@ contract('PonziToken', () => {
 
       context('check data initialization', () => {
         beforeEach(async () => {
-          owner = Accounts[0];
-          recipient = Accounts[1];
-          sender = Accounts[2];
-          bank = Accounts[3];
-          token = await PonziToken.new({ from: owner });
           await token.initContract({ from: owner });
         });
 
@@ -169,20 +156,14 @@ contract('PonziToken', () => {
 
   describe('setState(string)', () => {
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
-      sender = Accounts[2];
-      bank = Accounts[3];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
     });
 
     it('set Sale State, check firstEntranceToSaleStateUNIX', async () => {
       let timestampBefore = await token.firstEntranceToSaleStateUNIX.call();
-
       await token.setState(State.Sale.str, { from: owner });
       let timestamp = latestTime();
-
       let timestampAfter = await token.firstEntranceToSaleStateUNIX.call();
       let state = await token.state.call();
       assert.equal(state, State.Sale.str);
@@ -216,13 +197,10 @@ contract('PonziToken', () => {
 
   describe('disown()', () => {
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
-      sender = Accounts[2];
-      bank = Accounts[3];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
     });
+
     it('throw on not owner`s calling', async () => {
       await token.setState(State.PublicUse.str, { from: owner });
       await assertRevert(token.disown({ from: sender }));
@@ -247,13 +225,10 @@ contract('PonziToken', () => {
 
   describe('setBank(address)', () => {
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
-      sender = Accounts[2];
-      bank = Accounts[3];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
     });
+
     it('throw on not owner`s calling', async () => {
       await assertRevert(token.setBank(bank, { from: sender }));
     });
@@ -270,10 +245,6 @@ contract('PonziToken', () => {
 
   describe('setPriceSetter(address)', () => {
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
-      sender = Accounts[2];
-      bank = Accounts[3];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
     });
@@ -293,10 +264,6 @@ contract('PonziToken', () => {
 
   describe('setAndFixTokenPriceInWei(uint256)', () => {
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
-      sender = Accounts[2];
-      bank = Accounts[3];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
     });
@@ -321,13 +288,10 @@ contract('PonziToken', () => {
 
   describe('unfixTokenPriceInWei()', () => {
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
-      sender = Accounts[2];
-      bank = Accounts[3];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
     });
+
     it('throw on not owner`s calling', async () => {
       await assertRevert(token.unfixTokenPriceInWei({ from: sender }));
     });
@@ -343,19 +307,15 @@ contract('PonziToken', () => {
   });
 
   describe('transfer(address,uint256)', () => {
-    let receiver, sender, transferAmount;
+    let transferAmount;
     beforeEach(async () => {
-      receiver = await Token677ReceiverMock.new();
-
+      token677Receiver = await Token677ReceiverMock.new();
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
       await token.setState(State.PublicUse.str, { from: owner });
-
-      sender = Accounts[1];
       transferAmount = 100;
-
       await token.transfer(sender, transferAmount, { from: owner });
-      assert.equal(await receiver.sentValue(), 0);
+      assert.equal(await token677Receiver.sentValue(), 0);
     });
 
     it('does not let you transfer to the null address', async () => {
@@ -367,33 +327,30 @@ contract('PonziToken', () => {
     });
 
     it('transfers the tokens', async () => {
-      let balance = await token.balanceOf(receiver.address);
+      let balance = await token.balanceOf(token677Receiver.address);
       assert.equal(balance, 0);
-
-      await token.transfer(receiver.address, transferAmount, { from: sender });
-
-      balance = await token.balanceOf(receiver.address);
+      await token.transfer(token677Receiver.address, transferAmount, { from: sender });
+      balance = await token.balanceOf(token677Receiver.address);
       assert.equal(balance.toString(), transferAmount.toString());
     });
 
     it('does NOT call the fallback on transfer', async () => {
-      await token.transfer(receiver.address, transferAmount, { from: sender });
+      await token.transfer(token677Receiver.address, transferAmount, { from: sender });
 
-      let calledFallback = await receiver.calledFallback();
+      let calledFallback = await token677Receiver.calledFallback();
       assert(!calledFallback);
     });
 
     it('returns true when the transfer succeeds', async () => {
-      let success = await token.transfer(receiver.address, transferAmount, { from: sender });
+      let success = await token.transfer(token677Receiver.address, transferAmount, { from: sender });
       assert(success);
     });
 
     it('throws when the transfer fails', async () => {
-      await assertInvalidOpcode(token.transfer(receiver.address, 100000, { from: sender }));
+      await assertInvalidOpcode(token.transfer(token677Receiver.address, 100000, { from: sender }));
     });
 
     context('when sending to a contract that is not ERC677 compatible', () => {
-      let nonERC677;
       beforeEach(async () => {
         nonERC677 = await NotERC677Compatible.new();
       });
@@ -401,9 +358,7 @@ contract('PonziToken', () => {
       it('transfers the token', async () => {
         let balance = await token.balanceOf(nonERC677.address);
         assert.equal(balance, 0);
-
         await token.transfer(nonERC677.address, transferAmount, { from: sender });
-
         balance = await token.balanceOf(nonERC677.address);
         assert.equal(balance.toString(), transferAmount.toString());
       });
@@ -413,8 +368,6 @@ contract('PonziToken', () => {
   describe('approve(address,uint256)', () => {
     let amount = 1000;
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
       await token.setState(State.PublicUse.str, { from: owner });
@@ -446,15 +399,7 @@ contract('PonziToken', () => {
     });
   });
 
-  describe('increaseApproval(address,uint256)', function () {
-    beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
-      token = await PonziToken.new({ from: owner });
-      await token.initContract({ from: owner });
-      await token.setState(State.PublicUse.str, { from: owner });
-    });
-
+  context('increaseApproval(address,uint256)', function () {
     it('should start with zero', async function () {
       let preApproved = await token.allowance(owner, recipient);
       assert.equal(preApproved.toString(), 0);
@@ -467,25 +412,21 @@ contract('PonziToken', () => {
     });
   });
 
-  describe('decreaseApproval(address,uint256)', function () {
+  context('decreaseApproval(address,uint256)', function () {
+    let prevApprowal;
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
-      token = await PonziToken.new({ from: owner });
-      await token.initContract({ from: owner });
-      await token.setState(State.PublicUse.str, { from: owner });
+      prevApprowal = await token.allowance(owner, recipient);
     });
 
     it('should decrease by 50', async function () {
       await token.increaseApproval(recipient, 200, { from: owner });
       await token.decreaseApproval(recipient, 50, { from: owner });
       let postDecrease = await token.allowance(owner, recipient);
-      assert.equal(150, postDecrease.toString());
+      assert.equal(prevApprowal.plus(150), postDecrease.toString());
     });
 
     it('when allowance lowest then decrease set 0', async function () {
-      await token.increaseApproval(recipient, 200, { from: owner });
-      await token.decreaseApproval(recipient, 300, { from: owner });
+      await token.decreaseApproval(recipient, prevApprowal.plus(300), { from: owner });
       let postDecrease = await token.allowance(owner, recipient);
       assert.equal(0, postDecrease.toString());
     });
@@ -494,8 +435,6 @@ contract('PonziToken', () => {
   describe('transferFrom(address,address,uint256)', () => {
     let amount = 1000;
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
       await token.setState(State.PublicUse.str, { from: owner });
@@ -528,7 +467,6 @@ contract('PonziToken', () => {
     let amount = 100;
     let data;
     beforeEach(async () => {
-      owner = Accounts[0];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
       await token.setState(State.PublicUse.str, { from: owner });
@@ -561,7 +499,6 @@ contract('PonziToken', () => {
     });
 
     context('when sending to a contract that is not ERC677 compatible', () => {
-      let nonERC677;
       beforeEach(async () => {
         nonERC677 = await NotERC677Compatible.new();
       });
@@ -571,14 +508,9 @@ contract('PonziToken', () => {
     });
   });
 
-  describe('transferAllAndCall(address, uint, bytes)', () => {
-    let token677Receiver;
+  context('transferAllAndCall(address, uint, bytes)', () => {
     let data;
     beforeEach(async () => {
-      owner = Accounts[0];
-      token = await PonziToken.new({ from: owner });
-      await token.initContract({ from: owner });
-      await token.setState(State.PublicUse.str, { from: owner });
       data = owner;
       token677Receiver = await Token677ReceiverMock.new();
     });
@@ -596,148 +528,98 @@ contract('PonziToken', () => {
   describe('byTokens()', () => {
     context('check balances of tokens', () => {
       beforeEach(async () => {
-        owner = Accounts[0];
-        recipient = Accounts[1];
-        sender = Accounts[2];
-        bank = Accounts[3];
         token = await PonziToken.new({ from: owner });
         await token.initContract({ from: owner });
-        // set state to Sale
         await token.setState(State.Sale.str, { from: owner });
         await token.setBank(bank, { from: owner });
       });
-      let value = 1e+18;
-
+      let value = ether(1).toNumber();
+      let amount = 1000;
       it('by tokens on 1 eth = 1000*10^8 PT, check tokens on sender`s balance', async () => {
-        // get balance before token
         let balanceBefore = await token.balanceOf.call(sender);
-
-        // try by tokens
         await token.byTokens({ from: sender, value: value });
-
-        // get balance after token
         let balanceAfter = await token.balanceOf.call(sender);
-
         assert.equal(balanceBefore.toString(), 0);
-        assert.equal(balanceAfter.toString(), 1000 * 1e+8);
+        assert.equal(balanceAfter.toString(), amount * 1e+8);
       });
 
       it('by tokens on 1 eth = 1000*10^8 PT, check tokens on contract`s balance', async () => {
-        // get balance before token
         let balanceBefore = await token.balanceOf.call(token.address);
-
-        // try by tokens
         await token.byTokens({ from: sender, value: value });
-
-        // get balance after token
         let balanceAfter = await token.balanceOf.call(token.address);
-
-        assert.equal(balanceAfter.toString(), balanceBefore.minus(1000 * 1e+8).toString());
+        assert.equal(balanceAfter.toString(), balanceBefore.minus(amount * 1e+8).toString());
       });
 
       it('by tokens on 2 eth check max token per address', async () => {
-        // get balance before token
         let balanceTokenBefore = await token.balanceOf.call(token.address);
         let balanceSenderBefore = await token.balanceOf.call(sender);
-
-        // try by tokens
         await token.byTokens({ from: sender, value: 2 * value });
-
-        // get balance after token
         let balanceTokenAfter = await token.balanceOf.call(token.address);
         let balanceSenderAfter = await token.balanceOf.call(sender);
-
-        assert.equal(balanceTokenAfter.toString(), balanceTokenBefore.minus(1000 * 1e+8).toString());
-        assert.equal(balanceSenderAfter.toString(), balanceSenderBefore.plus(1000 * 1e+8).toString());
+        assert.equal(balanceTokenAfter.toString(), balanceTokenBefore.minus(amount * 1e+8).toString());
+        assert.equal(balanceSenderAfter.toString(), balanceSenderBefore.plus(amount * 1e+8).toString());
       });
 
       it('by tokens on 0.5 eth check max token per address', async () => {
-        // get balance before token
         let balanceTokenBefore = await token.balanceOf.call(token.address);
         let balanceSenderBefore = await token.balanceOf.call(sender);
-
-        // try by tokens
         await token.byTokens({ from: sender, value: value / 2 });
-
-        // get balance after token
         let balanceTokenAfter = await token.balanceOf.call(token.address);
         let balanceSenderAfter = await token.balanceOf.call(sender);
-
-        assert.equal(balanceTokenAfter.toString(), balanceTokenBefore.minus(500 * 1e+8).toString());
-        assert.equal(balanceSenderAfter.toString(), balanceSenderBefore.plus(500 * 1e+8).toString());
+        assert.equal(balanceTokenAfter.toString(), balanceTokenBefore.minus(amount / 2 * 1e+8).toString());
+        assert.equal(balanceSenderAfter.toString(), balanceSenderBefore.plus(amount / 2 * 1e+8).toString());
       });
 
       it('throw when try to by tokens and balance = max tokens per address ', async () => {
-        // by tokens
         await token.byTokens({ from: sender, value: value });
         await assertRevert(token.withdraw({ from: sender }));
       });
     });
+
     context('check balances of eth; check pending Withdrawals', () => {
-      let value = 1e+18;
+      let value = ether(1).toNumber();
       beforeEach(async () => {
-        owner = Accounts[0];
-        recipient = Accounts[1];
-        sender = Accounts[2];
-        bank = Accounts[3];
         token = await PonziToken.new({ from: owner });
         await token.initContract({ from: owner });
-        // set state to Sale
         await token.setState(State.Sale.str, { from: owner });
         await token.setBank(bank, { from: owner });
       });
 
       it('check eth transfering on by tokens 2eth(owner, token, bank sender) ', async () => {
-        // get balance before eth
         let balanceOwnerBefore = await getBalance(owner);
         let balanceSenderBefore = await getBalance(sender);
         let balanceBankBefore = await getBalance(bank);
         let balanceTokenBefore = await getBalance(token.address);
-        // by tokens
         await token.byTokens({ from: sender, value: 2 * value });
-        // get balance before eth
         let balanceOwnerAfter = await getBalance(owner);
         let balanceSenderAfter = await getBalance(sender);
         let balanceBankAfter = await getBalance(bank);
         let balanceTokenAfter = await getBalance(token.address);
-
-        // owner
         assert.equal(balanceOwnerBefore.toString(), balanceOwnerAfter.minus(5 / 100 * value));
-        // bank
         assert.equal(balanceBankBefore.toString(), balanceBankAfter.minus(95 / 100 * value));
-        // sender
         assert.equal(
           balanceSenderBefore.toString(),
           BigNumber(latestGasUsed()).multipliedBy(gasPrice).plus(2 * value).plus(balanceSenderAfter).toString()
         );
-        // token
         assert.equal(balanceTokenBefore.toString(), balanceTokenAfter.toString() - value);
       });
 
       it('check eth transfering on by tokens 0.5 eth(owner, token, bank sender) ', async () => {
-        // get balance before eth
         let balanceOwnerBefore = await getBalance(owner);
         let balanceSenderBefore = await getBalance(sender);
         let balanceBankBefore = await getBalance(bank);
         let balanceTokenBefore = await getBalance(token.address);
-        // by tokens
         await token.byTokens({ from: sender, value: value / 2 });
-        // get balance before eth
         let balanceOwnerAfter = await getBalance(owner);
         let balanceSenderAfter = await getBalance(sender);
         let balanceBankAfter = await getBalance(bank);
         let balanceTokenAfter = await getBalance(token.address);
-
-        // owner
         assert.equal(balanceOwnerBefore.toString(), balanceOwnerAfter.minus(5 / 100 * value / 2).toString());
-        // bank
         assert.equal(balanceBankBefore.toString(), balanceBankAfter.minus(95 / 100 * value / 2).toString());
-        // sender
         assert.equal(
           balanceSenderBefore.toString(),
           BigNumber(latestGasUsed()).multipliedBy(gasPrice).plus(value / 2).plus(balanceSenderAfter).toString()
         );
-        // token
         assert.equal(balanceTokenBefore.toString(), balanceTokenAfter.toString());
       });
 
@@ -762,12 +644,8 @@ contract('PonziToken', () => {
     });
 
     context('fallback()', () => {
-      let value = ether(0.5, 'ether');
-      beforeEach(async () => {
-        owner = Accounts[0];
-        recipient = Accounts[1];
-        sender = Accounts[2];
-        bank = Accounts[3];
+      let value = ether(0.5);
+      before(async () => {
         token = await PonziToken.new({ from: owner });
         await token.initContract({ from: owner });
       });
@@ -783,24 +661,17 @@ contract('PonziToken', () => {
       });
 
       it('successful send 0.5eth to contact and recive tokens', async () => {
-        // set state to Sale
         await token.setState(State.Sale.str, { from: owner });
-        // get balance before token
         let balanceTokenBefore = await token.balanceOf.call(token.address);
         let balanceSenderBefore = await token.balanceOf.call(sender);
-
-        // try by tokens
-        var send = web3.eth.sendTransaction({
+        let send = await web3.eth.sendTransaction({
           from: sender,
           to: token.address,
           value: value,
           gas: 500000,
         });
-
-        // get balance after token
         let balanceTokenAfter = await token.balanceOf.call(token.address);
         let balanceSenderAfter = await token.balanceOf.call(sender);
-
         assert(send);
         assert.equal(balanceTokenAfter.toString(), balanceTokenBefore.minus(500 * 1e+8).toString());
         assert.equal(balanceSenderAfter.toString(), balanceSenderBefore.plus(500 * 1e+8).toString());
@@ -809,78 +680,55 @@ contract('PonziToken', () => {
   });
 
   describe('withdraw() check balances of eth; check pending Withdrawals', () => {
-    let value = 1e+18;
+    let value = ether(1).toNumber();
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
-      sender = Accounts[2];
-      bank = Accounts[3];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
-      // set state to Sale
       await token.setState(State.Sale.str, { from: owner });
       await token.setBank(bank, { from: owner });
     });
 
     it('check eth transfering on by tokens 2eth(owner, token, bank sender) ', async () => {
-      // get balance before eth
       let balanceOwnerBefore = await getBalance(owner);
       let balanceSenderBefore = await getBalance(sender);
       let balanceBankBefore = await getBalance(bank);
       let balanceTokenBefore = await getBalance(token.address);
-      // by tokens
       await token.byTokens({ from: sender, value: 2 * value });
       let gasUsedByTokens = latestGasUsed() * gasPrice;
-      // withdraw
       await token.withdraw({ from: sender });
       let gasUsedWithdraw = latestGasUsed() * gasPrice;
-      // get balance before eth
       let balanceOwnerAfter = await getBalance(owner);
       let balanceSenderAfter = await getBalance(sender);
       let balanceBankAfter = await getBalance(bank);
       let balanceTokenAfter = await getBalance(token.address);
-
-      // owner
       assert.equal(balanceOwnerBefore.toString(), balanceOwnerAfter.minus(5 / 100 * value).toString());
-      // bank
       assert.equal(balanceBankBefore.toString(), balanceBankAfter.minus(95 / 100 * value).toString());
-      // sender
       assert.equal(
         balanceSenderBefore.toString(),
         BigNumber(gasUsedByTokens).plus(gasUsedWithdraw).plus(value).plus(balanceSenderAfter).toString()
       );
-      // token
       assert.equal(balanceTokenBefore.toString(), balanceTokenAfter.toString());
     });
 
     it('check throw; check eth transfering on by tokens 0.5eth(owner, token, bank sender) ', async () => {
-      // get balance before eth
       let balanceOwnerBefore = await getBalance(owner);
       let balanceSenderBefore = await getBalance(sender);
       let balanceBankBefore = await getBalance(bank);
       let balanceTokenBefore = await getBalance(token.address);
-      // by tokens
       await token.byTokens({ from: sender, value: value / 2 });
       let gasUsedByTokens = latestGasUsed() * gasPrice;
-      // withdraw
       await assertRevert(token.withdraw({ from: sender }));
       let gasUsedWithdraw = latestGasUsed() * gasPrice;
-      // get balance before eth
       let balanceOwnerAfter = await getBalance(owner);
       let balanceSenderAfter = await getBalance(sender);
       let balanceBankAfter = await getBalance(bank);
       let balanceTokenAfter = await getBalance(token.address);
-
-      // owner
       assert.equal(balanceOwnerBefore.toString(), balanceOwnerAfter.minus(5 / 100 * value / 2).toString());
-      // bank
       assert.equal(balanceBankBefore.toString(), balanceBankAfter.minus(95 / 100 * value / 2).toString());
-      // sender
       assert.equal(
         balanceSenderBefore.toString(),
         BigNumber(gasUsedByTokens).plus(gasUsedWithdraw).plus(value / 2).plus(balanceSenderAfter).toString()
       );
-      // token
       assert.equal(balanceTokenBefore.toString(), balanceTokenAfter.toString());
     });
 
@@ -903,8 +751,6 @@ contract('PonziToken', () => {
 
   describe('checkAccess()', () => {
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
     });
@@ -936,8 +782,6 @@ contract('PonziToken', () => {
 
   describe('calcTokenPriceInWei()', () => {
     beforeEach(async () => {
-      owner = Accounts[0];
-      recipient = Accounts[1];
       token = await PonziToken.new({ from: owner });
       await token.initContract({ from: owner });
       await token.setState(State.Sale.str, { from: owner });

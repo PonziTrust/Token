@@ -2,7 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/PonziTrust/Token/badge.svg?branch=master)](https://coveralls.io/github/PonziTrust/Token?branch=master)
 [![Build Status](https://travis-ci.org/PonziTrust/Token.svg?branch=master)](https://travis-ci.org/PonziTrust/Token)
 
-The PONZI token was implement [EIP20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md) and [ERC667](https://github.com/ethereum/EIPs/issues/677) token standard with additional functionality - sells tokens.
+The PONZI token was implement [EIP20](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md) and [ERC667](https://github.com/ethereum/EIPs/issues/677) token standards with additional functionality - sells tokens.
 
 The total supply of the token is 100,000,000, and each token is divisibe up to 8 decimal places.
 
@@ -12,12 +12,12 @@ For all computational operations [Zeppelin Solidity SafeMath](https://github.com
 
 To prevent accidental burns, the token does not allow transfers to the contract itself and to 0x0.
 
-The token implements [Withdrawal](http://solidity.readthedocs.io/en/develop/common-patterns.html#withdrawal-from-contracts), [Restricting Access](http://solidity.readthedocs.io/en/develop/common-patterns.html#restricting-access), [State Machine](http://solidity.readthedocs.io/en/develop/common-patterns.html#state-machine) patterns.
+The contract implements [Withdrawal](http://solidity.readthedocs.io/en/develop/common-patterns.html#withdrawal-from-contracts), [Restricting Access](http://solidity.readthedocs.io/en/develop/common-patterns.html#restricting-access), [State Machine](http://solidity.readthedocs.io/en/develop/common-patterns.html#state-machine) patterns.
 
-## The token states of work:
-- PreSale: only owner has access to transfer tokens.
-- Sale: the token sells tokens by byToken() of fallback, only owner or itself has access to transfer tokens.
-- PublicUse: anyone can transfer tokens.
+## The contract`s states of work:
+- PreSale: only owner has access to transfer tokens
+- Sale: sells tokens by func byToken() or fallback, only owner or itself has access to transfer tokens
+- PublicUse: anyone can transfer tokens
 
 
 ## Details
@@ -35,6 +35,11 @@ The token implements [Withdrawal](http://solidity.readthedocs.io/en/develop/comm
 ## Installation
 ```
 npm install
+```
+
+## compilation
+```
+npm run compile
 ```
 
 ## Testing

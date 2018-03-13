@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Ponzi Trust token smart contract",
   "scripts": {
+    "compile": "node_modules/.bin/truffle compile",
     "test": "node_modules/.bin/truffle test --network develop",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

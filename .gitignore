@@ -30,7 +30,8 @@ npm-debug.log
 .env
 
 # truffle build directory
-build/
+build/contracts/*
+!build/contracts/PonziToken.json
 .node-xml*
 
 # loc macs
