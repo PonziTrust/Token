@@ -1,5 +1,11 @@
 pragma solidity ^0.4.18;
 
+/**
+* Ponzi Trust Token Smart Contracts
+* Code is published on https://github.com/PonziTrust/Token
+* Ponzi Trust https://ponzitrust.com/
+*/
+
 import "./SafeMath.sol";
 
 // see: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
